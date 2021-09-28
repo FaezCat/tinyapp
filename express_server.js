@@ -39,20 +39,16 @@ app.get('/urls', (req, res) => {
   res.render("urls_index", templateVars);
 });
 
+// handles the generation of a new shortURL followed by a redirect to show you the new shortURL you created
 app.post("/urls", (req, res) => {
-  let shortUrl = generateRandomString();
-  urlDatabase[shortUrl] = req.body.longURL;
-  res.redirect(`/urls/${shortUrl}`);
+  const shortURL = generateRandomString();
+  urlDatabase[shortURL] = req.body.longURL;
+  res.redirect(`/urls/${shortURL}`);
 });
 
 // presents the urls/new page containing a form to input a URL
 app.get('/urls/new', (req, res) => {
   res.render("urls_new");
-});
-
-// currently unclear use 
-app.get('/urls.json', (req, res) => {
-  res.json(urlDatabase);
 });
 
 // handles the path when a shortURL is provided and passes along an obj containing both the shortURLs and longURLs
@@ -61,7 +57,13 @@ app.get('/urls/:shortURL', (req, res) => {
   res.render("urls_show", templateVars);
 });
 
-// event listener for people making requests to our server
+// for the /u/ path it essentially redirects you to the longURL website associated with the shortURL entered as part of the get request 
+app.get('/u/:shortURL', (req, res) => {
+  const longURL = urlDatabase[req.params.shortURL];
+  res.redirect(longURL);
+});
+
+// event listener for people making to our server
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
