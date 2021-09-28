@@ -5,6 +5,12 @@ const PORT = 8080;
 // sets the "view engine" to embedded js
 app.set("view engine", "ejs");
 
+// Quick Notes for Reference
+// 3 view pages:
+// urls_index view page displays all urls aka "My URLs"
+// urls_new view page displays the page to create a new URL
+// urls_show view page displays an individual page per shortURL with edit func
+
 // Middleware
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
