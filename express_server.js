@@ -1,11 +1,13 @@
 const express = require("express");
 const app = express();
 const PORT = 8080;
-const bodyParser = require("body-parser");
-app.use(bodyParser.urlencoded({extended: true}));
 
 // sets the "view engine" to embedded js
 app.set("view engine", "ejs");
+
+// Middleware
+const bodyParser = require("body-parser");
+app.use(bodyParser.urlencoded({extended: true}));
 
 // database containing both the shortURLs (keys) and longURLs (values)
 const urlDatabase = {
@@ -51,13 +53,19 @@ app.get('/urls/new', (req, res) => {
   res.render("urls_new");
 });
 
+app.post('/urls/:shortURL/delete', (req, res) => {
+  const shortURL = req.params.shortURL;
+  delete urlDatabase[shortURL];
+  res.redirect('/urls');
+});
+
 // handles the path when a shortURL is provided and passes along an obj containing both the shortURLs and longURLs
 app.get('/urls/:shortURL', (req, res) => {
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
   res.render("urls_show", templateVars);
 });
 
-// for the /u/ path it essentially redirects you to the longURL website associated with the shortURL entered as part of the get request 
+// for the /u/ path it essentially redirects you to the longURL website associated with the shortURL entered as part of the get request
 app.get('/u/:shortURL', (req, res) => {
   const longURL = urlDatabase[req.params.shortURL];
   res.redirect(longURL);
