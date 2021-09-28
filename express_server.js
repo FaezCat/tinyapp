@@ -27,15 +27,20 @@ app.get('/urls', (req, res) => {
   res.render("urls_index", templateVars);
 });
 
-// handles the path when a shortURL is provided and passes along an obj containing both the shortURLs and longURLs
-app.get('/urls/:shortURL', (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
-  res.render("urls_show", templateVars);
+// presents the urls/new page 
+app.get("/urls/new", (req, res) => {
+  res.render("urls_new");
 });
 
 // currently unclear use 
 app.get('/urls.json', (req, res) => {
   res.json(urlDatabase);
+});
+
+// handles the path when a shortURL is provided and passes along an obj containing both the shortURLs and longURLs
+app.get('/urls/:shortURL', (req, res) => {
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
+  res.render("urls_show", templateVars);
 });
 
 // event listener for people connecting to our server
