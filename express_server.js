@@ -23,20 +23,20 @@ const generateRandomString = () => {
   return randomString;
 };
 
-// handles get requests for the main page
+// handles get requests for the main page and reroutes you to the /urls/ page
 app.get('/', (req, res) => {
-  res.send("Hello!");
+  res.redirect('/urls');
 });
 
 // handles get requests for the /hello path
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
+app.get('/hello', (req, res) => {
+  res.send('<html><body>Hello <b>World</b></body></html>\n');
 });
 
 // handles get requests for the /urls path and passes along the urlDatabase obj to be rendered
 app.get('/urls', (req, res) => {
   const templateVars = { urls: urlDatabase};
-  res.render("urls_index", templateVars);
+  res.render('urls_index', templateVars);
 });
 
 // handles the generation of a new shortURL followed by a redirect to show you the new shortURL you created
