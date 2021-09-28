@@ -13,6 +13,15 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com",
 };
 
+const generateRandomString = () => {
+  let randomString = '';
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  for (let i = 0; i < 6; i++) {
+    randomString += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return randomString;
+};
+
 // handles get requests for the main page
 app.get('/', (req, res) => {
   res.send("Hello!");
@@ -29,7 +38,12 @@ app.get('/urls', (req, res) => {
   res.render("urls_index", templateVars);
 });
 
-// presents the urls/new page 
+app.post("/urls", (req, res) => {
+  console.log(req.body);  // Log the POST request body to the console
+  res.send("Ok");         // Respond with 'Ok' (we will replace this)
+});
+
+// presents the urls/new page containing a form to input a URL
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
