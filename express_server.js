@@ -13,6 +13,7 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com",
 };
 
+// a function built to generate the shortURL aka a 6 character alphanumeric value
 const generateRandomString = () => {
   let randomString = '';
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -39,7 +40,8 @@ app.get('/urls', (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  console.log(req.body);  // Log the POST request body to the console
+  urlDatabase[generateRandomString()] = req.body.longURL;
+  console.log(urlDatabase);  // Log the POST request body to the console
   res.send("Ok");         // Respond with 'Ok' (we will replace this)
 });
 
