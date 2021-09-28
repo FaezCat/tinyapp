@@ -53,13 +53,22 @@ app.get('/urls/new', (req, res) => {
   res.render("urls_new");
 });
 
+// handles the route for deleting a shortURL from our urlDatabase and myURLs list
 app.post('/urls/:shortURL/delete', (req, res) => {
   const shortURL = req.params.shortURL;
   delete urlDatabase[shortURL];
   res.redirect('/urls');
 });
 
-// handles the path when a shortURL is provided and passes along an obj containing both the shortURLs and longURLs
+// handles the route for editing a shortURL; updates our urlDatabase and myURLs list then reroutes back to same page
+app.post('/urls/:shortURL/edit', (req, res) => {
+  const shortURL = req.params.shortURL;
+  urlDatabase[shortURL] = req.body.newLongURL;
+  console.log(req.body);
+  res.redirect(`/urls/${shortURL}`);
+});
+
+// handles the route when a shortURL is provided and passes along an obj containing both the shortURLs and longURLs
 app.get('/urls/:shortURL', (req, res) => {
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
   res.render("urls_show", templateVars);
