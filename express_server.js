@@ -10,7 +10,7 @@ app.set("view engine", "ejs");
 // database containing both the shortURLs (keys) and longURLs (values)
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com",
+  "Jsm5xK": "http://www.google.com",
 };
 
 // a function built to generate the shortURL aka a 6 character alphanumeric value
@@ -40,13 +40,13 @@ app.get('/urls', (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  urlDatabase[generateRandomString()] = req.body.longURL;
-  console.log(urlDatabase);  // Log the POST request body to the console
-  res.send("Ok");         // Respond with 'Ok' (we will replace this)
+  let shortUrl = generateRandomString();
+  urlDatabase[shortUrl] = req.body.longURL;
+  res.redirect(`/urls/${shortUrl}`);
 });
 
 // presents the urls/new page containing a form to input a URL
-app.get("/urls/new", (req, res) => {
+app.get('/urls/new', (req, res) => {
   res.render("urls_new");
 });
 
@@ -61,7 +61,7 @@ app.get('/urls/:shortURL', (req, res) => {
   res.render("urls_show", templateVars);
 });
 
-// event listener for people connecting to our server
+// event listener for people making requests to our server
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
