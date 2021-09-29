@@ -12,6 +12,9 @@ app.set("view engine", "ejs");
 // urls_show view page displays an individual page per shortURL with edit func
 
 // Middleware
+const cookieParser = require('cookie-parser');
+app.use(cookieParser());
+
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 
@@ -36,10 +39,10 @@ app.get('/', (req, res) => {
   res.redirect('/urls');
 });
 
-// handles get requests for the /hello path
-app.get('/hello', (req, res) => {
-  res.send('<html><body>Hello <b>World</b></body></html>\n');
-});
+// // handles get requests for the /hello path
+// app.get('/hello', (req, res) => {
+//   res.send('<html><body>Hello <b>World</b></body></html>\n');
+// });
 
 // handles header login functionality - assigns cookie and redirects user back to /urls page
 app.post('/login', (req, res) => {
@@ -56,7 +59,10 @@ app.get('/u/:shortURL', (req, res) => {
 
 // handles get requests for the /urls path and passes along the urlDatabase obj to be rendered
 app.get('/urls', (req, res) => {
-  const templateVars = { urls: urlDatabase};
+  const templateVars = {
+    username: req.cookies["username"],
+    urls: urlDatabase
+  };
   res.render('urls_index', templateVars);
 });
 
@@ -69,7 +75,10 @@ app.post("/urls", (req, res) => {
 
 // presents the urls/new page containing a form to input a URL
 app.get('/urls/new', (req, res) => {
-  res.render("urls_new");
+  const templateVars = {
+    username: req.cookies["username"],
+  };
+  res.render("urls_new", templateVars);
 });
 
 // handles the route for deleting a shortURL from our urlDatabase and myURLs list
@@ -88,7 +97,11 @@ app.post('/urls/:shortURL/edit', (req, res) => {
 
 // handles the route when a shortURL is provided and passes along an obj containing both the shortURLs and longURLs
 app.get('/urls/:shortURL', (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
+  const templateVars = {
+    shortURL: req.params.shortURL,
+    longURL: urlDatabase[req.params.shortURL],
+    username: req.cookies["username"],
+  };
   res.render("urls_show", templateVars);
 });
 
