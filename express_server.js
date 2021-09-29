@@ -24,6 +24,15 @@ const urlDatabase = {
   "Jsm5xK": "http://www.google.com",
 };
 
+// database containing all user data + a simple example for reference
+const users = {
+  "userRandomID": {
+    id: "userRandomID", 
+    email: "user@example.com", 
+    password: "purple-monkey-dinosaur"
+  }
+};
+
 // a function built to generate the shortURL aka a 6 character alphanumeric value
 const generateRandomString = () => {
   let randomString = '';
@@ -51,16 +60,32 @@ app.post('/login', (req, res) => {
   res.redirect('/urls');
 });
 
+// handles logout functionality - clears a user's cookie and redirects to main page
 app.post('/logout', (req, res) => {
   res.clearCookie('username');
   res.redirect('/urls');
 });
 
+// generates the registration page for the /register path
 app.get('/register', (req, res) => {
   const templateVars = {
     username: req.cookies['username'],
   };
   res.render('register_page', templateVars);
+});
+
+app.post('/register', (req, res) => {
+  const id = generateRandomString();
+  const email = req.body.email;
+  const password = req.body.password;
+  users[id] = {
+    id: id,
+    email: email,
+    password: password
+  }
+  res.cookie('user_id', users[id].id);
+  console.log(users);
+  res.redirect('/urls');
 });
 
 // for the /u/ path it essentially redirects you to the longURL website associated with the shortURL entered as part of the get request
