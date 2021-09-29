@@ -41,6 +41,19 @@ app.get('/hello', (req, res) => {
   res.send('<html><body>Hello <b>World</b></body></html>\n');
 });
 
+// handles header login functionality - assigns cookie and redirects user back to /urls page
+app.post('/login', (req, res) => {
+  const username = req.body.username;
+  res.cookie('username', username);
+  res.redirect('/urls');
+});
+
+// for the /u/ path it essentially redirects you to the longURL website associated with the shortURL entered as part of the get request
+app.get('/u/:shortURL', (req, res) => {
+  const longURL = urlDatabase[req.params.shortURL];
+  res.redirect(longURL);
+});
+
 // handles get requests for the /urls path and passes along the urlDatabase obj to be rendered
 app.get('/urls', (req, res) => {
   const templateVars = { urls: urlDatabase};
@@ -70,7 +83,6 @@ app.post('/urls/:shortURL/delete', (req, res) => {
 app.post('/urls/:shortURL/edit', (req, res) => {
   const shortURL = req.params.shortURL;
   urlDatabase[shortURL] = req.body.newLongURL;
-  console.log(req.body);
   res.redirect(`/urls/${shortURL}`);
 });
 
@@ -78,12 +90,6 @@ app.post('/urls/:shortURL/edit', (req, res) => {
 app.get('/urls/:shortURL', (req, res) => {
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
   res.render("urls_show", templateVars);
-});
-
-// for the /u/ path it essentially redirects you to the longURL website associated with the shortURL entered as part of the get request
-app.get('/u/:shortURL', (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL];
-  res.redirect(longURL);
 });
 
 // event listener for people making to our server
