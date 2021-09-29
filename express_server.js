@@ -27,8 +27,8 @@ const urlDatabase = {
 // database containing all user data + a simple example for reference
 const users = {
   "userRandomID": {
-    id: "userRandomID", 
-    email: "user@example.com", 
+    id: "userRandomID",
+    email: "user@example.com",
     password: "purple-monkey-dinosaur"
   }
 };
@@ -53,7 +53,7 @@ app.get('/', (req, res) => {
 //   res.send('<html><body>Hello <b>World</b></body></html>\n');
 // });
 
-// handles header login functionality - assigns cookie and redirects user back to /urls page
+// handles header login functionality - NEEDS TO BE UPDATED
 app.post('/login', (req, res) => {
   const username = req.body.username;
   res.cookie('username', username);
@@ -62,14 +62,15 @@ app.post('/login', (req, res) => {
 
 // handles logout functionality - clears a user's cookie and redirects to main page
 app.post('/logout', (req, res) => {
-  res.clearCookie('username');
+  res.clearCookie('user_id');
   res.redirect('/urls');
 });
 
 // generates the registration page for the /register path
 app.get('/register', (req, res) => {
+  const userID = req.cookies['user_id']
   const templateVars = {
-    username: req.cookies['username'],
+    userObj: users[userID]
   };
   res.render('register_page', templateVars);
 });
@@ -82,9 +83,8 @@ app.post('/register', (req, res) => {
     id: id,
     email: email,
     password: password
-  }
+  };
   res.cookie('user_id', users[id].id);
-  console.log(users);
   res.redirect('/urls');
 });
 
@@ -96,8 +96,9 @@ app.get('/u/:shortURL', (req, res) => {
 
 // handles get requests for the /urls path and passes along the urlDatabase obj to be rendered
 app.get('/urls', (req, res) => {
+  const userID = req.cookies['user_id']
   const templateVars = {
-    username: req.cookies['username'],
+    userObj: users[userID],
     urls: urlDatabase
   };
   res.render('urls_index', templateVars);
@@ -112,8 +113,9 @@ app.post('/urls', (req, res) => {
 
 // presents the urls/new page containing a form to input a URL
 app.get('/urls/new', (req, res) => {
+  const userID = req.cookies['user_id']
   const templateVars = {
-    username: req.cookies['username'],
+    userObj: users[userID],
   };
   res.render('urls_new', templateVars);
 });
@@ -134,10 +136,11 @@ app.post('/urls/:shortURL/edit', (req, res) => {
 
 // handles the route when a shortURL is provided and passes along an obj containing both the shortURLs and longURLs
 app.get('/urls/:shortURL', (req, res) => {
+  const userID = req.cookies['user_id']
   const templateVars = {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL],
-    username: req.cookies['username'],
+    userObj: users[userID],
   };
   res.render("urls_show", templateVars);
 });
