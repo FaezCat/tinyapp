@@ -1,9 +1,9 @@
-const express = require("express");
+const express = require('express');
 const app = express();
 const PORT = 8080;
 
 // sets the "view engine" to embedded js
-app.set("view engine", "ejs");
+app.set('view engine', 'ejs');
 
 // Quick Notes for Reference
 // 3 view pages:
@@ -65,14 +65,14 @@ app.get('/u/:shortURL', (req, res) => {
 // handles get requests for the /urls path and passes along the urlDatabase obj to be rendered
 app.get('/urls', (req, res) => {
   const templateVars = {
-    username: req.cookies["username"],
+    username: req.cookies['username'],
     urls: urlDatabase
   };
   res.render('urls_index', templateVars);
 });
 
 // handles the generation of a new shortURL followed by a redirect to show you the new shortURL you created
-app.post("/urls", (req, res) => {
+app.post('/urls', (req, res) => {
   const shortURL = generateRandomString();
   urlDatabase[shortURL] = req.body.longURL;
   res.redirect(`/urls/${shortURL}`);
@@ -81,9 +81,9 @@ app.post("/urls", (req, res) => {
 // presents the urls/new page containing a form to input a URL
 app.get('/urls/new', (req, res) => {
   const templateVars = {
-    username: req.cookies["username"],
+    username: req.cookies['username'],
   };
-  res.render("urls_new", templateVars);
+  res.render('urls_new', templateVars);
 });
 
 // handles the route for deleting a shortURL from our urlDatabase and myURLs list
@@ -105,7 +105,7 @@ app.get('/urls/:shortURL', (req, res) => {
   const templateVars = {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL],
-    username: req.cookies["username"],
+    username: req.cookies['username'],
   };
   res.render("urls_show", templateVars);
 });
