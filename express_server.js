@@ -56,6 +56,13 @@ app.post('/logout', (req, res) => {
   res.redirect('/urls');
 });
 
+app.get('/register', (req, res) => {
+  const templateVars = {
+    username: req.cookies['username'],
+  };
+  res.render('register_page', templateVars);
+});
+
 // for the /u/ path it essentially redirects you to the longURL website associated with the shortURL entered as part of the get request
 app.get('/u/:shortURL', (req, res) => {
   const longURL = urlDatabase[req.params.shortURL];
