@@ -21,9 +21,7 @@ app.use(cookieParser());
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 
-let userStatus = false;
-
-// database containing both the shortURLs (keys) and longURLs (values)
+// database containing shortURL primary keys and then longURL and userID properties per key
 const urlDatabase = {
   b6UTxQ: {
     longURL: "https://www.tsn.ca",
@@ -31,7 +29,7 @@ const urlDatabase = {
   },
 };
 
-// database containing all user data + a simple example for reference
+// database containing userID primary keys and userID (same value), email, and password properties per key
 const users = {
   "userRandomID": {
     id: "userRandomID",
@@ -40,6 +38,7 @@ const users = {
   }
 };
 
+// function to return an object containing all the shortURLs that match a user_id
 const urlsForUser = id => {
   let matchingURLs = {};
 
@@ -48,7 +47,6 @@ const urlsForUser = id => {
       matchingURLs[url] = url;
     }
   }
-  console.log(matchingURLs);
   return matchingURLs;
 };
 
@@ -62,7 +60,7 @@ const findUserByEmail = (email) => {
   return null;
 };
 
-// a function built to generate the shortURL aka a 6 character alphanumeric value
+// a function built to generate the shortURL and userID's aka 6 character alphanumeric strings
 const generateRandomString = () => {
   let randomString = '';
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -72,15 +70,15 @@ const generateRandomString = () => {
   return randomString;
 };
 
-// handles get requests for the main page and reroutes you to the /urls/ page
+// handles get requests for the main page and reroutes you to either /login or /urls pending if you're logged in or not
 app.get('/', (req, res) => {
   const userID = req.cookies['user_id'];
 
-  if (!userID) {
+  if (!userID || !users[userID]) {
     res.redirect('/login');
+  } else {
+    res.redirect('/urls');
   }
-  
-  res.redirect('/urls');
 });
 
 // handles get method for /login path and returns the login page
@@ -96,7 +94,6 @@ app.get('/login', (req, res) => {
 
 // handles POST login functionality: first, checks if user exists, then, checks if password matches and if so, it will then log the user in and set their cookie to the user_id
 app.post('/login', (req, res) => {
-  // we receive email and password from input fields
   const email = req.body.email;
   const password = req.body.password;
 
@@ -151,7 +148,7 @@ app.post('/register', (req, res) => {
   res.redirect('/urls');
 });
 
-// for the /u/ path it essentially redirects you to the longURL website associated with the shortURL entered as part of the get request
+// for the /u/ path it essentially checks to see if the short URL exists and then redirects you to the longURL website accordingly
 app.get('/u/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
 
@@ -163,95 +160,123 @@ app.get('/u/:shortURL', (req, res) => {
   res.redirect(longURL);
 });
 
-// handles get requests for the /urls path and passes along the urlDatabase obj to be rendered
+// handles get requests for the main /urls path and first validates if you have a cookie and if that cookie matches a user in the database prior to rendering page
 app.get('/urls', (req, res) => {
   const userID = req.cookies['user_id'];
   
-  if (!userID) {
+  if (!userID || !users[userID]) {
     res.redirect('/login');
-  }
+  } else {
+    
+    const userURLs = {};
   
-  const userURLs = {};
-
-  for (const shortURL in urlDatabase) {
-    if (urlDatabase[shortURL]["userID"] === userID) {
-      userURLs[shortURL] = urlDatabase[shortURL];
+    for (const shortURL in urlDatabase) {
+      if (urlDatabase[shortURL]["userID"] === userID) {
+        userURLs[shortURL] = urlDatabase[shortURL];
+      }
     }
+    
+    const templateVars = {
+      userObj: users[userID],
+      urls: userURLs,
+      userID: userID
+    };
+    res.render('urls_index', templateVars);
+
   }
-  
-  const templateVars = {
-    userObj: users[userID],
-    urls: userURLs,
-    userID: userID
-  };
-  res.render('urls_index', templateVars);
 });
 
-// handles the generation of a new shortURL followed by a redirect to show you the new shortURL you created
+// handles the validation of a cookie + that the user exists prior to generating a new shortURL followed by a redirect to show you the new shortURL + allow editing
 app.post('/urls', (req, res) => {
   const userID = req.cookies['user_id'];
-  if (!userID) {
+  
+  if (!userID || !users[userID]) {
     res.redirect('/login');
+  } else {
+    
+    const shortURL = generateRandomString();
+    
+    urlDatabase[shortURL] = {
+      longURL: req.body.longURL,
+      userID: userID,
+    };
+    res.redirect(`/urls/${shortURL}`);
   }
-  const shortURL = generateRandomString();
-  urlDatabase[shortURL] = {
-    longURL: req.body.longURL,
-    userID: userID,
-  }
-  console.log(urlDatabase);
-  res.redirect(`/urls/${shortURL}`);
 });
 
-// presents the urls/new page containing a form to input a URL
+// presents the urls/new page containing a form to input a URL after validating that you have a cookie and that the user exists in the db
 app.get('/urls/new', (req, res) => {
   const userID = req.cookies['user_id'];
   
-  if (!userID) {
+  if (!userID || !users[userID]) {
     res.redirect('/login');
+  } else {
+    
+    const templateVars = {
+      userObj: users[userID],
+    };
+    
+    res.render('urls_new', templateVars);
+
   }
-  
-  const templateVars = {
-    userObj: users[userID],
-  };
-  
-  res.render('urls_new', templateVars);
 });
 
-// handles the route for deleting a shortURL from our urlDatabase and myURLs list
+// handles the route for deleting a shortURL from our urlDatabase and myURLs list after validating cookie/user
 app.post('/urls/:shortURL/delete', (req, res) => {
-  const shortURL = req.params.shortURL;
-  delete urlDatabase[shortURL];
-  res.redirect('/urls');
+  const userID = req.cookies['user_id'];
+
+  if (!userID || !users[userID]) {
+    res.redirect('/login');
+  } else {
+    const shortURL = req.params.shortURL;
+    
+    if (!urlsForUser(userID)[shortURL]) {
+      return res.status(401).send("You must login to delete this shortened URL");
+    }
+  
+    delete urlDatabase[shortURL];
+    res.redirect('/urls');
+  }
 });
 
-// handles the route for editing a shortURL; updates our urlDatabase and myURLs list then reroutes back to same page
+// handles the route for editing a shortURL; updates our urlDatabase and myURLs list then reroutes back to same page after validating cookie and user
 app.post('/urls/:shortURL/edit', (req, res) => {
-  const shortURL = req.params.shortURL;
-  urlDatabase[shortURL]["longURL"] = req.body.newLongURL;
-  res.redirect(`/urls/${shortURL}`);
+  const userID = req.cookies['user_id'];
+
+  if (!userID || !users[userID]) {
+    res.redirect('/login');
+  } else {
+    const shortURL = req.params.shortURL;
+      
+    if (!urlsForUser(userID)[shortURL]) {
+      return res.status(401).send("You must login to edit this shortened URL");
+    }
+    
+    urlDatabase[shortURL]["longURL"] = req.body.newLongURL;
+    res.redirect(`/urls/${shortURL}`);
+  }
 });
 
 // handles the route when a shortURL is provided and passes along an obj containing both the shortURLs and longURLs
 app.get('/urls/:shortURL', (req, res) => {
   const userID = req.cookies['user_id'];
 
-  if (!userID) {
+  if (!userID || !users[userID]) {
     res.redirect('/login');
+  } else {
+    const shortURL = req.params.shortURL;
+    
+    if (!urlsForUser(userID)[shortURL]) {
+      return res.status(401).send("You must login to view this shortened URL");
+    }
+    
+    const templateVars = {
+      shortURL: shortURL,
+      longURL: urlDatabase[shortURL]["longURL"],
+      userObj: users[userID],
+    };
+    res.render("urls_show", templateVars);
   }
-
-  const shortURL = req.params.shortURL;
-
-  // this if statement might need to be rewritten (although it could be correct)
-  if (!urlsForUser(userID)[shortURL]) {
-    res.status(401).send("You must login to view this shortened URL")
-  }
-
-  const templateVars = {
-    shortURL: shortURL,
-    longURL: urlDatabase[shortURL]["longURL"],
-    userObj: users[userID],
-  };
-  res.render("urls_show", templateVars);
 });
 
 // event listener for requests made to the server
