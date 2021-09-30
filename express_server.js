@@ -2,9 +2,6 @@ const express = require('express');
 const app = express();
 const PORT = 8080;
 
-// sets the "view engine" to embedded js
-app.set('view engine', 'ejs');
-
 // Quick Notes for Reference
 // cookie name is user_id
 
@@ -13,6 +10,9 @@ app.set('view engine', 'ejs');
 // urls_index displays all urls aka "My URLs"
 // urls_new displays the page to create a new URL
 // urls_show displays an individual page per shortURL with edit functionality
+
+// sets the "view engine" to embedded js
+app.set('view engine', 'ejs');
 
 // Middleware
 const cookieSession = require('cookie-session');
@@ -26,6 +26,9 @@ const bcrypt = require('bcryptjs');
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 
+// Imported Helper Functions
+const { urlsForUser, findUserByEmail } = require('./helpers');
+
 // database containing shortURL primary keys and then longURL and userID properties per key
 const urlDatabase = {
   b6UTxQ: {
@@ -36,28 +39,6 @@ const urlDatabase = {
 
 // database containing userID primary keys and userID (same value), email, and password properties per key
 const users = {};
-
-// function to return an object containing all the shortURLs that match a user_id
-const urlsForUser = (id, database) => {
-  let matchingURLs = {};
-
-  for (const url in database) {
-    if (database[url]["userID"] === id) {
-      matchingURLs[url] = url;
-    }
-  }
-  return matchingURLs;
-};
-
-// function to search our users database by an email parameter (literally an email); it returns an object containing the user's data
-const findUserByEmail = (email, database) => {
-  for (const userID in database) {
-    if (database[userID]["email"] === email) {
-      return database[userID];
-    }
-  }
-  return null;
-};
 
 // a function built to generate the shortURL and userID's aka 6 character alphanumeric strings
 const generateRandomString = () => {
