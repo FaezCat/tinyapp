@@ -15,10 +15,13 @@ app.set('view engine', 'ejs');
 // urls_show displays an individual page per shortURL with edit functionality
 
 // Middleware
-const bcrypt = require('bcryptjs');
+const cookieSession = require('cookie-session');
+app.use(cookieSession({
+  name: 'user_id',
+  keys: ["drinking", "java"]
+}));
 
-const cookieParser = require('cookie-parser');
-app.use(cookieParser());
+const bcrypt = require('bcryptjs');
 
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
@@ -47,10 +50,10 @@ const urlsForUser = id => {
 };
 
 // function to search our users database by an email parameter (literally an email); it returns an object containing the user's data
-const findUserByEmail = (email) => {
-  for (const userID in users) {
-    if (users[userID]["email"] === email) {
-      return users[userID];
+const findUserByEmail = (email, database) => {
+  for (const userID in database) {
+    if (database[userID]["email"] === email) {
+      return database[userID];
     }
   }
   return null;
@@ -68,7 +71,8 @@ const generateRandomString = () => {
 
 // handles get requests for the main page and reroutes you to either /login or /urls pending if you're logged in or not
 app.get('/', (req, res) => {
-  const userID = req.cookies['user_id'];
+  const userID = req.session.user_id;
+  console.log(userID);
 
   if (!userID || !users[userID]) {
     res.redirect('/login');
@@ -79,7 +83,7 @@ app.get('/', (req, res) => {
 
 // handles get method for /login path and returns the login page
 app.get('/login', (req, res) => {
-  const userID = req.cookies['user_id'];
+  const userID = req.session.user_id;
   
   const templateVars = {
     userObj: users[userID],
@@ -93,16 +97,18 @@ app.post('/login', (req, res) => {
   const email = req.body.email;
   const incomingTestPassword = req.body.password;
 
-  if (!findUserByEmail(email)) {
-    return res.status(403).send('User Not Found');
-  } 
+  const userDataObj = findUserByEmail(email, users);
 
-  const storedPassword = findUserByEmail(email)['password'];
+  if (!userDataObj) {
+    return res.status(403).send('User Not Found');
+  }
+
+  const storedPassword = userDataObj['password'];
 
   bcrypt.compare(incomingTestPassword, storedPassword)
     .then((result) => {
       if (result) {
-        res.cookie('user_id', findUserByEmail(email)['id']);
+        req.session.user_id = userDataObj['id'];
         res.redirect('/urls');
       } else {
         return res.status(401).send('Incorrect password');
@@ -113,12 +119,14 @@ app.post('/login', (req, res) => {
 // handles logout functionality - clears a user's cookie and redirects to main page
 app.post('/logout', (req, res) => {
   res.clearCookie('user_id');
+  res.clearCookie('user_id.sig');
   res.redirect('/urls');
 });
 
 // generates the registration page for the /register path
 app.get('/register', (req, res) => {
-  const userID = req.cookies['user_id'];
+  const userID = req.session.user_id;
+  
   const templateVars = {
     userObj: users[userID]
   };
@@ -135,7 +143,7 @@ app.post('/register', (req, res) => {
     return res.status(400).send("Email and password fields cannot be blank");
   }
 
-  if (findUserByEmail(email)) {
+  if (findUserByEmail(email, users)) {
     return res.status(400).send("User already exists");
   }
 
@@ -167,7 +175,7 @@ app.get('/u/:shortURL', (req, res) => {
 
 // handles get requests for the main /urls path and first validates if you have a cookie and if that cookie matches a user in the database prior to rendering page
 app.get('/urls', (req, res) => {
-  const userID = req.cookies['user_id'];
+  const userID = req.session.user_id;
   
   if (!userID || !users[userID]) {
     res.redirect('/login');
@@ -193,7 +201,7 @@ app.get('/urls', (req, res) => {
 
 // handles the validation of a cookie + that the user exists prior to generating a new shortURL followed by a redirect to show you the new shortURL + allow editing
 app.post('/urls', (req, res) => {
-  const userID = req.cookies['user_id'];
+  const userID = req.session.user_id;
   
   if (!userID || !users[userID]) {
     res.redirect('/login');
@@ -211,7 +219,7 @@ app.post('/urls', (req, res) => {
 
 // presents the urls/new page containing a form to input a URL after validating that you have a cookie and that the user exists in the db
 app.get('/urls/new', (req, res) => {
-  const userID = req.cookies['user_id'];
+  const userID = req.session.user_id;
   
   if (!userID || !users[userID]) {
     res.redirect('/login');
@@ -228,7 +236,7 @@ app.get('/urls/new', (req, res) => {
 
 // handles the route for deleting a shortURL from our urlDatabase and myURLs list after validating cookie/user
 app.post('/urls/:shortURL/delete', (req, res) => {
-  const userID = req.cookies['user_id'];
+  const userID = req.session.user_id;
 
   if (!userID || !users[userID]) {
     res.redirect('/login');
@@ -246,7 +254,7 @@ app.post('/urls/:shortURL/delete', (req, res) => {
 
 // handles the route for editing a shortURL; updates our urlDatabase and myURLs list then reroutes back to same page after validating cookie and user
 app.post('/urls/:shortURL/edit', (req, res) => {
-  const userID = req.cookies['user_id'];
+  const userID = req.session.user_id;
 
   if (!userID || !users[userID]) {
     res.redirect('/login');
@@ -264,7 +272,7 @@ app.post('/urls/:shortURL/edit', (req, res) => {
 
 // handles the route when a shortURL is provided and passes along an obj containing both the shortURLs and longURLs
 app.get('/urls/:shortURL', (req, res) => {
-  const userID = req.cookies['user_id'];
+  const userID = req.session.user_id;
 
   if (!userID || !users[userID]) {
     res.redirect('/login');
