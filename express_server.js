@@ -6,10 +6,13 @@ const PORT = 8080;
 app.set('view engine', 'ejs');
 
 // Quick Notes for Reference
-// 3 view pages:
-// urls_index view page displays all urls aka "My URLs"
-// urls_new view page displays the page to create a new URL
-// urls_show view page displays an individual page per shortURL with edit func
+// cookie name is user_id
+
+// 5 templates and 1 partial:
+// login_page, _header partial, and register_page are self explanatory
+// urls_index displays all urls aka "My URLs"
+// urls_new displays the page to create a new URL
+// urls_show displays an individual page per shortURL with edit functionality
 
 // Middleware
 const cookieParser = require('cookie-parser');
@@ -67,11 +70,22 @@ app.get('/login', (req, res) => {
   res.render('login_page', templateVars);
 });
 
-// handles POST login functionality - NEEDS TO BE UPDATED
+// handles POST login functionality: first, checks if user exists, then, checks if password matches and if so, it will then log the user in and set their cookie to the user_id
 app.post('/login', (req, res) => {
-  const username = req.body.username;
-  res.cookie('username', username);
-  res.redirect('/urls');
+  // we receive email and password from input fields
+  const email = req.body.email;
+  const password = req.body.password;
+
+  if (!findUserByEmail(email)) {
+    return res.status(403).send('User Not Found');
+  }
+
+  if (findUserByEmail(email)['password'] === password) {
+    res.cookie('user_id', findUserByEmail(email)['id']);
+    res.redirect('/urls');
+  } else {
+    return res.status(403).send('Incorrect Password');
+  }
 });
 
 // handles logout functionality - clears a user's cookie and redirects to main page
@@ -170,7 +184,7 @@ app.get('/urls/:shortURL', (req, res) => {
   res.render("urls_show", templateVars);
 });
 
-// event listener for requests made to our server
+// event listener for requests made to the server
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
