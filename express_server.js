@@ -72,7 +72,6 @@ const generateRandomString = () => {
 // handles get requests for the main page and reroutes you to either /login or /urls pending if you're logged in or not
 app.get('/', (req, res) => {
   const userID = req.session.user_id;
-  console.log(userID);
 
   if (!userID || !users[userID]) {
     res.redirect('/login');
