@@ -38,11 +38,11 @@ const urlDatabase = {
 const users = {};
 
 // function to return an object containing all the shortURLs that match a user_id
-const urlsForUser = id => {
+const urlsForUser = (id, database) => {
   let matchingURLs = {};
 
-  for (const url in urlDatabase) {
-    if (urlDatabase[url]["userID"] === id) {
+  for (const url in database) {
+    if (database[url]["userID"] === id) {
       matchingURLs[url] = url;
     }
   }
@@ -243,7 +243,7 @@ app.post('/urls/:shortURL/delete', (req, res) => {
   } else {
     const shortURL = req.params.shortURL;
     
-    if (!urlsForUser(userID)[shortURL]) {
+    if (!urlsForUser(userID, urlDatabase)[shortURL]) {
       return res.status(401).send("You must login to delete this shortened URL");
     }
   
@@ -261,7 +261,7 @@ app.post('/urls/:shortURL/edit', (req, res) => {
   } else {
     const shortURL = req.params.shortURL;
       
-    if (!urlsForUser(userID)[shortURL]) {
+    if (!urlsForUser(userID, urlDatabase)[shortURL]) {
       return res.status(401).send("You must login to edit this shortened URL");
     }
     
@@ -279,7 +279,7 @@ app.get('/urls/:shortURL', (req, res) => {
   } else {
     const shortURL = req.params.shortURL;
     
-    if (!urlsForUser(userID)[shortURL]) {
+    if (!urlsForUser(userID, urlDatabase)[shortURL]) {
       return res.status(401).send("You must login to view this shortened URL");
     }
     
