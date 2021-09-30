@@ -33,6 +33,16 @@ const users = {
   }
 };
 
+// function to search our users database by an email parameter (literally an email)
+const findUserByEmail = (email) => {
+  for (const userID in users) {
+    if (users[userID]["email"] === email) {
+      return users[userID];
+    }
+  }
+  return null;
+};
+
 // a function built to generate the shortURL aka a 6 character alphanumeric value
 const generateRandomString = () => {
   let randomString = '';
@@ -75,15 +85,26 @@ app.get('/register', (req, res) => {
   res.render('register_page', templateVars);
 });
 
+// handles the logic after a user submits their registration form: checks if either field was blank, then checks if the user already exists, and if neither condition is triggered then it creates a new user and assigns a cookie with the user_id
 app.post('/register', (req, res) => {
   const id = generateRandomString();
   const email = req.body.email;
   const password = req.body.password;
+
+  if (!email || !password) {
+    return res.status(400).send("Email and password fields cannot be blank");
+  }
+
+  if (findUserByEmail(email)) {
+    return res.status(400).send("User already exists")
+  }
+
   users[id] = {
     id: id,
     email: email,
     password: password
   };
+
   res.cookie('user_id', users[id].id);
   res.redirect('/urls');
 });
@@ -99,7 +120,7 @@ app.get('/urls', (req, res) => {
   const userID = req.cookies['user_id']
   const templateVars = {
     userObj: users[userID],
-    urls: urlDatabase
+    urls: urlDatabase,
   };
   res.render('urls_index', templateVars);
 });
@@ -136,7 +157,7 @@ app.post('/urls/:shortURL/edit', (req, res) => {
 
 // handles the route when a shortURL is provided and passes along an obj containing both the shortURLs and longURLs
 app.get('/urls/:shortURL', (req, res) => {
-  const userID = req.cookies['user_id']
+  const userID = req.cookies['user_id'];
   const templateVars = {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL],
@@ -145,7 +166,7 @@ app.get('/urls/:shortURL', (req, res) => {
   res.render("urls_show", templateVars);
 });
 
-// event listener for people making to our server
+// event listener for requests made to our server
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
