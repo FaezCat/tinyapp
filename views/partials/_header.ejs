@@ -14,9 +14,12 @@
             <button type="submit" class="btn btn-primary">Logout</button>
           </form>
         <% } else { %>
-          <form class="form-inline" form action="/login" method="POST">
-            <input type="text" id="username" name="username" placeholder="Username">
+          <form class="form-inline" form action="/login" method="GET">
             <button type="submit" class="btn btn-primary">Login</button>
+          </form>
+          
+          <form class="form-inline" form action="/register" method="GET">
+            <button type="submit" class="btn btn-danger">Register</button>
           </form>
         <% } %>
       </div>

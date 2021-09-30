@@ -33,7 +33,7 @@ const users = {
   }
 };
 
-// function to search our users database by an email parameter (literally an email)
+// function to search our users database by an email parameter (literally an email); it returns an object containing the user's data
 const findUserByEmail = (email) => {
   for (const userID in users) {
     if (users[userID]["email"] === email) {
@@ -58,12 +58,16 @@ app.get('/', (req, res) => {
   res.redirect('/urls');
 });
 
-// // handles get requests for the /hello path
-// app.get('/hello', (req, res) => {
-//   res.send('<html><body>Hello <b>World</b></body></html>\n');
-// });
+// handles get method for /login path and returns the login page
+app.get('/login', (req, res) => {
+  const userID = req.cookies['user_id'];
+  const templateVars = {
+    userObj: users[userID],
+  };
+  res.render('login_page', templateVars);
+});
 
-// handles header login functionality - NEEDS TO BE UPDATED
+// handles POST login functionality - NEEDS TO BE UPDATED
 app.post('/login', (req, res) => {
   const username = req.body.username;
   res.cookie('username', username);
@@ -78,14 +82,14 @@ app.post('/logout', (req, res) => {
 
 // generates the registration page for the /register path
 app.get('/register', (req, res) => {
-  const userID = req.cookies['user_id']
+  const userID = req.cookies['user_id'];
   const templateVars = {
     userObj: users[userID]
   };
   res.render('register_page', templateVars);
 });
 
-// handles the logic after a user submits their registration form: checks if either field was blank, then checks if the user already exists, and if neither condition is triggered then it creates a new user and assigns a cookie with the user_id
+// handles the logic after a user submits their registration form: checks if either field was blank, then checks if the user already exists, and if neither condition is triggered, then it creates a new user and assigns a cookie with the new user_id
 app.post('/register', (req, res) => {
   const id = generateRandomString();
   const email = req.body.email;
@@ -96,7 +100,7 @@ app.post('/register', (req, res) => {
   }
 
   if (findUserByEmail(email)) {
-    return res.status(400).send("User already exists")
+    return res.status(400).send("User already exists");
   }
 
   users[id] = {
@@ -117,7 +121,7 @@ app.get('/u/:shortURL', (req, res) => {
 
 // handles get requests for the /urls path and passes along the urlDatabase obj to be rendered
 app.get('/urls', (req, res) => {
-  const userID = req.cookies['user_id']
+  const userID = req.cookies['user_id'];
   const templateVars = {
     userObj: users[userID],
     urls: urlDatabase,
@@ -134,7 +138,7 @@ app.post('/urls', (req, res) => {
 
 // presents the urls/new page containing a form to input a URL
 app.get('/urls/new', (req, res) => {
-  const userID = req.cookies['user_id']
+  const userID = req.cookies['user_id'];
   const templateVars = {
     userObj: users[userID],
   };
