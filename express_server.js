@@ -15,6 +15,8 @@ app.set('view engine', 'ejs');
 // urls_show displays an individual page per shortURL with edit functionality
 
 // Middleware
+const bcrypt = require('bcryptjs');
+
 const cookieParser = require('cookie-parser');
 app.use(cookieParser());
 
@@ -30,13 +32,7 @@ const urlDatabase = {
 };
 
 // database containing userID primary keys and userID (same value), email, and password properties per key
-const users = {
-  "userRandomID": {
-    id: "userRandomID",
-    email: "user@example.com",
-    password: "purple-monkey-dinosaur"
-  }
-};
+const users = {};
 
 // function to return an object containing all the shortURLs that match a user_id
 const urlsForUser = id => {
@@ -95,18 +91,23 @@ app.get('/login', (req, res) => {
 // handles POST login functionality: first, checks if user exists, then, checks if password matches and if so, it will then log the user in and set their cookie to the user_id
 app.post('/login', (req, res) => {
   const email = req.body.email;
-  const password = req.body.password;
+  const incomingTestPassword = req.body.password;
 
   if (!findUserByEmail(email)) {
     return res.status(403).send('User Not Found');
-  }
+  } 
 
-  if (findUserByEmail(email)['password'] === password) {
-    res.cookie('user_id', findUserByEmail(email)['id']);
-    res.redirect('/urls');
-  } else {
-    return res.status(403).send('Incorrect Password');
-  }
+  const storedPassword = findUserByEmail(email)['password'];
+
+  bcrypt.compare(incomingTestPassword, storedPassword)
+    .then((result) => {
+      if (result) {
+        res.cookie('user_id', findUserByEmail(email)['id']);
+        res.redirect('/urls');
+      } else {
+        return res.status(401).send('Incorrect password');
+      }
+    });
 });
 
 // handles logout functionality - clears a user's cookie and redirects to main page
@@ -138,14 +139,18 @@ app.post('/register', (req, res) => {
     return res.status(400).send("User already exists");
   }
 
-  users[id] = {
-    id: id,
-    email: email,
-    password: password
-  };
-
-  res.cookie('user_id', users[id].id);
-  res.redirect('/urls');
+  bcrypt.genSalt(10)
+    .then((salt) => {
+      return bcrypt.hash(password, salt);
+    })
+    .then((hash) => {
+      users[id] = {
+        id,
+        email,
+        password: hash,
+      };
+      res.redirect('/login');
+    });
 });
 
 // for the /u/ path it essentially checks to see if the short URL exists and then redirects you to the longURL website accordingly
