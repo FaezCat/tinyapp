@@ -236,7 +236,7 @@ app.post('/urls/:shortURL/delete', (req, res) => {
 });
 
 // handles the route for editing a shortURL; updates our urlDatabase and myURLs list then reroutes back to same page after validating cookie and user
-app.post('/urls/:shortURL/edit', (req, res) => {
+app.post('/urls/:shortURL', (req, res) => {
   const userID = req.session.user_id;
 
   if (!userID || !users[userID]) {
@@ -257,13 +257,17 @@ app.post('/urls/:shortURL/edit', (req, res) => {
 app.get('/urls/:shortURL', (req, res) => {
   const userID = req.session.user_id;
 
+  if (!urlDatabase[req.params.shortURL]) {
+    return res.status(404).send("404 short URL not found");
+  }
+
   if (!userID || !users[userID]) {
-    res.redirect('/login');
+    return res.status(401).send("Please login to view shortened URL");
   } else {
     const shortURL = req.params.shortURL;
     
     if (!urlsForUser(userID, urlDatabase)[shortURL]) {
-      return res.status(401).send("You must login to view this shortened URL");
+      return res.status(401).send("Shortened URL does not belong to user");
     }
     
     const templateVars = {
