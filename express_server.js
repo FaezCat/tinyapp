@@ -43,7 +43,7 @@ const urlDatabase = {
 // database containing userID primary keys and userID (same value), email, and password properties per key
 const users = {};
 
-// a function built to generate the shortURL and userID's aka 6 character alphanumeric strings
+// a function built to generate the shortURLs aka 6 character alphanumeric strings
 const generateRandomString = () => {
   let randomString = '';
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -64,7 +64,7 @@ app.get('/', (req, res) => {
   }
 });
 
-// handles get method for /login path and returns the login page
+// handles get method for /login path and returns the login page or /urls if you're already logged in
 app.get('/login', (req, res) => {
   const userID = req.session.user_id;
 
@@ -81,7 +81,7 @@ app.get('/login', (req, res) => {
   }
 });
 
-// handles POST login functionality: first, checks if user exists, then, checks if password matches and if so, it will then log the user in and set their cookie to the user_id
+// handles POST login functionality: first, checks if user exists, then, checks if password matches and if so, it will then log the user in and give them an encrypted cookie
 app.post('/login', (req, res) => {
   const email = req.body.email;
   const incomingTestPassword = req.body.password;
@@ -105,14 +105,14 @@ app.post('/login', (req, res) => {
     });
 });
 
-// handles logout functionality - clears a user's cookie and redirects to main page
+// handles logout functionality - clears a user's cookies and redirects them to the login page
 app.post('/logout', (req, res) => {
   res.clearCookie('user_id');
   res.clearCookie('user_id.sig');
   res.redirect('/login');
 });
 
-// generates the registration page for the /register path
+// generates the registration page for the /register path or redirects them if they're logged in already
 app.get('/register', (req, res) => {
   const userID = req.session.user_id;
 
@@ -127,7 +127,7 @@ app.get('/register', (req, res) => {
   
 });
 
-// handles the logic after a user submits their registration form: checks if either field was blank, then checks if the user already exists, and if neither condition is triggered, then it creates a new user and assigns a cookie with the new user_id
+// handles the logic after a user submits their registration form: checks if either field was blank, then checks if the user already exists, and if neither condition is triggered, then it creates a new user and hashes their password
 app.post('/register', (req, res) => {
   const id = generateRandomString();
   const email = req.body.email;
@@ -167,7 +167,7 @@ app.get('/u/:shortURL', (req, res) => {
   res.redirect(longURL);
 });
 
-// handles get requests for the main /urls path and first validates if you have a cookie and if that cookie matches a user in the database prior to rendering page
+// handles get requests for the main /urls path and first validates if you have a cookie and if that cookie matches a user in the database prior to rendering tailored shortURL page
 app.get('/urls', (req, res) => {
   const userID = req.session.user_id;
   
@@ -211,7 +211,7 @@ app.post('/urls', (req, res) => {
   }
 });
 
-// presents the urls/new page containing a form to input a URL after validating that you have a cookie and that the user exists in the db
+// presents the urls/new page containing a form to input a URL and generate a short URL after validating that you have a cookie and that the user exists in the db
 app.get('/urls/new', (req, res) => {
   const userID = req.session.user_id;
   
@@ -228,7 +228,7 @@ app.get('/urls/new', (req, res) => {
   }
 });
 
-// handles the route for deleting a shortURL from our urlDatabase and myURLs list after validating cookie/user/permissions
+// handles the route for deleting a shortURL from our urlDatabase and myURLs list after validating the cookie && user && permissions
 app.post('/urls/:shortURL/delete', (req, res) => {
   const userID = req.session.user_id;
 
@@ -265,7 +265,7 @@ app.post('/urls/:shortURL', (req, res) => {
   }
 });
 
-// handles the route when a shortURL is provided and passes along an obj containing both the shortURLs and longURLs
+// handles the route when a shortURL is provided and passes along an obj containing both the shortURLs and longURLs after checking if short URL exists then that the user has the proper permissions
 app.get('/urls/:shortURL', (req, res) => {
   const userID = req.session.user_id;
 
