@@ -2,6 +2,10 @@ const express = require('express');
 const app = express();
 const PORT = 8080;
 
+// sets the "view engine" to embedded js
+app.set('view engine', 'ejs');
+
+
 // Quick Notes for Reference
 // cookie name is user_id
 
@@ -11,8 +15,6 @@ const PORT = 8080;
 // urls_new displays the page to create a new URL
 // urls_show displays an individual page per shortURL with edit functionality
 
-// sets the "view engine" to embedded js
-app.set('view engine', 'ejs');
 
 // Middleware
 const cookieSession = require('cookie-session');
@@ -25,6 +27,7 @@ const bcrypt = require('bcryptjs');
 
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
+
 
 // Imported Helper Functions
 const { urlsForUser, findUserByEmail } = require('./helpers');
@@ -222,7 +225,7 @@ app.post('/urls/:shortURL/delete', (req, res) => {
     res.redirect('/login');
   } else {
     const shortURL = req.params.shortURL;
-    
+
     if (!urlsForUser(userID, urlDatabase)[shortURL]) {
       return res.status(401).send("You must login to delete this shortened URL");
     }
