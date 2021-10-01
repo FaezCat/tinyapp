@@ -8,7 +8,7 @@
       <div class="navbar-nav">
         <% if (userObj) { %>
           <a class="nav-item nav-link" href="/urls">My URLs</a>
-          <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
+          <a class="nav-item nav-link" href="/urls/new">Create a New TinyURL</a>
           <div class="navbar-text form-inline navbar-right">Signed In As: <a href="/urls"><%= userObj.email %></a></div>
           <form class="form-inline" form action="/logout" method="POST">
             <button type="submit" class="btn btn-primary">Logout</button>

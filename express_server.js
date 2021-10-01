@@ -161,7 +161,7 @@ app.get('/urls', (req, res) => {
   const userID = req.session.user_id;
   
   if (!userID || !users[userID]) {
-    res.redirect('/login');
+    res.send("Please login to view page");
   } else {
     
     const userURLs = {};
