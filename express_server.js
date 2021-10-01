@@ -67,12 +67,18 @@ app.get('/', (req, res) => {
 // handles get method for /login path and returns the login page
 app.get('/login', (req, res) => {
   const userID = req.session.user_id;
-  
-  const templateVars = {
-    userObj: users[userID],
-  };
 
-  res.render('login_page', templateVars);
+  if (userID) {
+    res.redirect('/urls');
+  } else {
+    
+    const templateVars = {
+      userObj: users[userID],
+    };
+  
+    res.render('login_page', templateVars);
+
+  }
 });
 
 // handles POST login functionality: first, checks if user exists, then, checks if password matches and if so, it will then log the user in and set their cookie to the user_id
@@ -103,17 +109,22 @@ app.post('/login', (req, res) => {
 app.post('/logout', (req, res) => {
   res.clearCookie('user_id');
   res.clearCookie('user_id.sig');
-  res.redirect('/urls');
+  res.redirect('/login');
 });
 
 // generates the registration page for the /register path
 app.get('/register', (req, res) => {
   const userID = req.session.user_id;
+
+  if (userID) {
+    res.redirect('/urls');
+  } else {
+    const templateVars = {
+      userObj: users[userID]
+    };
+    res.render('register_page', templateVars);
+  }
   
-  const templateVars = {
-    userObj: users[userID]
-  };
-  res.render('register_page', templateVars);
 });
 
 // handles the logic after a user submits their registration form: checks if either field was blank, then checks if the user already exists, and if neither condition is triggered, then it creates a new user and assigns a cookie with the new user_id
@@ -217,17 +228,18 @@ app.get('/urls/new', (req, res) => {
   }
 });
 
-// handles the route for deleting a shortURL from our urlDatabase and myURLs list after validating cookie/user
+// handles the route for deleting a shortURL from our urlDatabase and myURLs list after validating cookie/user/permissions
 app.post('/urls/:shortURL/delete', (req, res) => {
   const userID = req.session.user_id;
 
   if (!userID || !users[userID]) {
-    res.redirect('/login');
+    return res.status(401).send("Please login prior to making deletion");
   } else {
+
     const shortURL = req.params.shortURL;
 
     if (!urlsForUser(userID, urlDatabase)[shortURL]) {
-      return res.status(401).send("You must login to delete this shortened URL");
+      return res.status(401).send("You do not have permission to delete this shortened URL");
     }
   
     delete urlDatabase[shortURL];
