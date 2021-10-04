@@ -252,16 +252,16 @@ app.post('/urls/:shortURL', (req, res) => {
   const userID = req.session.user_id;
 
   if (!userID || !users[userID]) {
-    res.redirect('/login');
+    return res.send("Please login to edit this shortened URL")
   } else {
     const shortURL = req.params.shortURL;
       
     if (!urlsForUser(userID, urlDatabase)[shortURL]) {
-      return res.status(401).send("You must login to edit this shortened URL");
+      return res.status(401).send("You do not own this shortened URL and are therefore unable to edit it");
     }
     
     urlDatabase[shortURL]["longURL"] = req.body.newLongURL;
-    res.redirect(`/urls/${shortURL}`);
+    res.redirect(`/urls`);
   }
 });
 
