@@ -151,7 +151,9 @@ app.post('/register', (req, res) => {
         email,
         password: hash,
       };
-      res.redirect('/login');
+      const userDataObj = findUserByEmail(email, users)
+      req.session.user_id = userDataObj['id'];
+      res.redirect('/urls');
     });
 });
 
